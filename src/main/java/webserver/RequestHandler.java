@@ -123,13 +123,12 @@ public class RequestHandler extends Thread {
         try {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
             dos.writeBytes("Location: " + path + "\r\n");
-            dos.writeBytes("\r\n");
-
             if (logined) {
                 dos.writeBytes("Set-Cookie: logined=true");
             } else {
                 dos.writeBytes("Set-Cookie: logined=false");
             }
+            dos.writeBytes("\r\n");
 
         } catch (IOException e) {
             // TODO: handle exception
