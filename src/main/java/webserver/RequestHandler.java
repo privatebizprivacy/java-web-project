@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import model.User;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -39,11 +40,17 @@ public class RequestHandler extends Thread {
             // 헤더 출력
             String line = br.readLine();
             String url = WebUtil.getURI(line);
+            int contentLength = 0;
 
             while (!"".equals(line)) {
                 if (null == line) {
                     return;
                 }
+
+                if (line.contains("Content-Length")) {
+                    contentLength = WebUtil.getContentLength(line);
+                }
+
                 log.info(line);
                 line = br.readLine();
             }
@@ -51,10 +58,11 @@ public class RequestHandler extends Thread {
             // 요청 처리
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
+            String content = IOUtils.readData(br, contentLength);
 
             if (requestPath.equals("/user/create")) {
-                String params = url.substring(index + 1);
-                Map<String, String> parameters = HttpRequestUtils.parseQueryString(params);
+                // String params = url.substring(index + 1);
+                Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
 
