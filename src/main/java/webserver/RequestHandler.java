@@ -60,6 +60,7 @@ public class RequestHandler extends Thread {
             // 요청 처리
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
+            String path = requestPath;
 
             if (requestPath.equals("/user/create")) {
                 // String params = url.substring(index + 1);
@@ -67,13 +68,14 @@ public class RequestHandler extends Thread {
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
+                path = "/index.html";
 
                 // 로그 출력
                 log.info(user.toString());
             }
 
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
+            byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
 
             if (requestPath.equals("/user/create")) {
                 log.info("##################요청처리1###############################");
