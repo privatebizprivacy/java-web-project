@@ -9,9 +9,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import model.User;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -32,24 +36,35 @@ public class RequestHandler extends Thread {
             InputStreamReader reader = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(reader);
 
+            // 헤더 출력
             String line = br.readLine();
-            if (null == line) {
-                return;
-            }
-            log.info(line);
-
             String url = WebUtil.getURI(line);
 
             while (!"".equals(line)) {
-                line = br.readLine();
                 if (null == line) {
                     return;
                 }
                 log.info(line);
+                line = br.readLine();
+            }
+
+            // 요청 처리
+            int index = url.indexOf("?");
+            String requestPath = index > -1 ? url.substring(0, index) : url;
+
+            if (index > -1) {
+                String params = url.substring(index + 1);
+
+                Map<String, String> parameters = HttpRequestUtils.parseQueryString(params);
+                User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
+                        parameters.get("email"));
+
+                // 로그 출력
+                log.info(user.toString());
             }
 
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+            byte[] body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
             response200Header(dos, body.length);
             responseBody(dos, body);
         } catch (IOException e) {
