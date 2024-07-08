@@ -58,10 +58,10 @@ public class RequestHandler extends Thread {
             // 요청 처리
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
-            String content = IOUtils.readData(br, contentLength);
 
             if (requestPath.equals("/user/create")) {
                 // String params = url.substring(index + 1);
+                String content = IOUtils.readData(br, contentLength);
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
