@@ -74,7 +74,13 @@ public class RequestHandler extends Thread {
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
-            response200Header(dos, body.length);
+
+            if (requestPath.equals("/user/create")) {
+                response302Header(dos);
+            } else {
+                response200Header(dos, body.length);
+            }
+
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -88,6 +94,17 @@ public class RequestHandler extends Thread {
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("LOCATION: /index.html\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            // TODO: handle exception
             log.error(e.getMessage());
         }
     }
