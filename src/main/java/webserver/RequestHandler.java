@@ -96,7 +96,7 @@ public class RequestHandler extends Thread {
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
 
-            if (requestPath.equals("/user/create")) {
+            if (requestPath.equals("/user/create") || requestPath.equals("/user/login")) {
                 response302Header(dos, path, logined);
             } else {
                 response200Header(dos, body.length);
