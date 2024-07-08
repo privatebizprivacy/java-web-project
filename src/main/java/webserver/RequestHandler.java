@@ -47,7 +47,7 @@ public class RequestHandler extends Thread {
                     return;
                 }
 
-                if (line.contains("Content-Length")) {
+                if (line.startsWith("Content-Length:")) {
                     contentLength = WebUtil.getContentLength(line);
                 }
 
