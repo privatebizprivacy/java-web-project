@@ -52,9 +52,8 @@ public class RequestHandler extends Thread {
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
 
-            if (index > -1) {
+            if (requestPath.equals("/user/create")) {
                 String params = url.substring(index + 1);
-
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(params);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
