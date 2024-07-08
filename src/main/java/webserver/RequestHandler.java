@@ -76,8 +76,10 @@ public class RequestHandler extends Thread {
             byte[] body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
 
             if (requestPath.equals("/user/create")) {
+                log.info("##################요청처리1###############################");
                 response302Header(dos);
             } else {
+                log.info("##################요청처리2###############################");
                 response200Header(dos, body.length);
             }
 
