@@ -6,7 +6,7 @@ public class WebUtil {
 
         String[] tokens = header.split(" ");
 
-        if (tokens.length > 1 && tokens[0].equals("GET")) {
+        if (tokens.length > 1) {
             return tokens[1];
         }
 
