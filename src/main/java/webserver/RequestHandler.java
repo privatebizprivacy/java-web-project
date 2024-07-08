@@ -41,6 +41,7 @@ public class RequestHandler extends Thread {
             // 헤더 출력
             String line = br.readLine();
             String url = WebUtil.getURI(line);
+            boolean isLogined = false;
             int contentLength = 0;
 
             while (!"".equals(line)) {
@@ -53,7 +54,8 @@ public class RequestHandler extends Thread {
                 }
 
                 if (line.startsWith("Cookie:")) {
-                    log.info("로그인 확인처리");
+                    Map<String, String> cookies = HttpRequestUtils.parseCookies(line);
+                    isLogined = Boolean.parseBoolean(cookies.get("logined"));
                 }
 
                 log.info(line);
@@ -64,7 +66,6 @@ public class RequestHandler extends Thread {
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
             String path = requestPath;
-            boolean logined = false;
 
             if (requestPath.equals("/user/create")) {
                 // String params = url.substring(index + 1);
@@ -86,7 +87,7 @@ public class RequestHandler extends Thread {
 
                 if (null != user && user.getPassword().equals(parameters.get("password"))) {
                     path = "/index.html";
-                    logined = true;
+                    isLogined = true;
                 } else {
                     path = "/user/login_failed.html";
                 }
@@ -97,9 +98,42 @@ public class RequestHandler extends Thread {
             byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
 
             if (requestPath.equals("/user/create") || requestPath.equals("/user/login")) {
-                response302Header(dos, path, logined);
+                response302Header(dos, path, isLogined);
+            } else if (requestPath.equals("/user/list")) {
+
+                if (isLogined) {
+
+                    StringBuilder sb = new StringBuilder("");
+
+                    int num = 0;
+
+                    for (User user : DataBase.findAll()) {
+                        num++;
+                        sb.append("<tr>");
+                        sb.append("<th>");
+                        sb.append(num);
+                        sb.append("</th> <th>");
+                        sb.append(user.getUserId());
+                        sb.append("</th> <th>");
+                        sb.append(user.getName());
+                        sb.append("</th> <th>");
+                        sb.append(user.getEmail());
+                        sb.append("</th><th></th>");
+                        sb.append("</tr>");
+                    }
+
+                    body = new String(body).replace("{}", sb.toString()).getBytes();
+
+                    response200Header(dos, body.length, isLogined);
+
+                } else {
+                    path = "/index.html";
+                    body = Files.readAllBytes(new File("./webapp" + path).toPath());
+                    response302Header(dos, path, isLogined);
+                }
+
             } else {
-                response200Header(dos, body.length);
+                response200Header(dos, body.length, isLogined);
             }
 
             responseBody(dos, body);
@@ -108,22 +142,27 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, boolean isLogined) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            if (isLogined) {
+                dos.writeBytes("Set-Cookie: logined=true \r\n");
+            } else {
+                dos.writeBytes("Set-Cookie: logined=false \r\n");
+            }
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response302Header(DataOutputStream dos, String path, boolean logined) {
+    private void response302Header(DataOutputStream dos, String path, boolean isLogined) {
         try {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
             dos.writeBytes("Location: " + path + "\r\n");
-            if (logined) {
+            if (isLogined) {
                 dos.writeBytes("Set-Cookie: logined=true \r\n");
             } else {
                 dos.writeBytes("Set-Cookie: logined=false \r\n");
