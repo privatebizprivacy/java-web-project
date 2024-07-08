@@ -55,6 +55,8 @@ public class RequestHandler extends Thread {
                 line = br.readLine();
             }
 
+            log.info("##################요청처리###############################");
+
             // 요청 처리
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
