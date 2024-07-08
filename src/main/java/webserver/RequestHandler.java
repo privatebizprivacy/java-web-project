@@ -14,6 +14,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import db.DataBase;
 import model.User;
 import util.HttpRequestUtils;
 import util.IOUtils;
@@ -51,37 +52,53 @@ public class RequestHandler extends Thread {
                     contentLength = WebUtil.getContentLength(line);
                 }
 
+                if (line.startsWith("Cookie:")) {
+                    log.info("로그인 확인처리");
+                }
+
                 log.info(line);
                 line = br.readLine();
             }
-
-            log.info("##################요청처리###############################");
 
             // 요청 처리
             int index = url.indexOf("?");
             String requestPath = index > -1 ? url.substring(0, index) : url;
             String path = requestPath;
+            boolean logined = false;
 
             if (requestPath.equals("/user/create")) {
                 // String params = url.substring(index + 1);
+
                 String content = IOUtils.readData(br, contentLength);
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
-                path = "/index.html";
 
                 // 로그 출력
                 log.info(user.toString());
+                DataBase.addUser(user);
+                path = "/index.html";
+            } else if (requestPath.equals("/user/login")) {
+                String content = IOUtils.readData(br, contentLength);
+                Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
+
+                User user = DataBase.findUserById(parameters.get("userId"));
+
+                if (null != user && user.getPassword().equals(parameters.get("password"))) {
+                    path = "/index.html";
+                    logined = true;
+                } else {
+                    path = "/user/login_failed.html";
+                }
+
             }
 
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
 
             if (requestPath.equals("/user/create")) {
-                log.info("##################요청처리1###############################");
-                response302Header(dos);
+                response302Header(dos, path, logined);
             } else {
-                log.info("##################요청처리2###############################");
                 response200Header(dos, body.length);
             }
 
@@ -102,11 +119,18 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response302Header(DataOutputStream dos) {
+    private void response302Header(DataOutputStream dos, String path, boolean logined) {
         try {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
-            dos.writeBytes("Location: /index.html\r\n");
+            dos.writeBytes("Location: " + path + "\r\n");
             dos.writeBytes("\r\n");
+
+            if (logined) {
+                dos.writeBytes("Set-Cookie: logined=true");
+            } else {
+                dos.writeBytes("Set-Cookie: logined=false");
+            }
+
         } catch (IOException e) {
             // TODO: handle exception
             log.error(e.getMessage());
