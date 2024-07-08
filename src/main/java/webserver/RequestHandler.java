@@ -65,7 +65,9 @@ public class RequestHandler extends Thread {
 
             if (requestPath.equals("/user/create")) {
                 // String params = url.substring(index + 1);
+                log.info("##################요청처리1###############################");
                 String content = IOUtils.readData(br, contentLength);
+                log.info("##################요청처리2###############################");
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
                 User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
                         parameters.get("email"));
