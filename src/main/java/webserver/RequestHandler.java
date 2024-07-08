@@ -124,9 +124,9 @@ public class RequestHandler extends Thread {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
             dos.writeBytes("Location: " + path + "\r\n");
             if (logined) {
-                dos.writeBytes("Set-Cookie: logined=true");
+                dos.writeBytes("Set-Cookie: logined=true \r\n");
             } else {
-                dos.writeBytes("Set-Cookie: logined=false");
+                dos.writeBytes("Set-Cookie: logined=false \r\n");
             }
             dos.writeBytes("\r\n");
 
