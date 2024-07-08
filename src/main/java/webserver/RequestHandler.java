@@ -47,8 +47,10 @@ public class RequestHandler extends Thread {
                     return;
                 }
 
+                log.info("##################컨텐트 렝스처리전###############################");
                 if (line.startsWith("Content-Length:")) {
                     contentLength = WebUtil.getContentLength(line);
+                    log.info("##################컨텐트 렝스처리후###############################");
                 }
 
                 log.info(line);
