@@ -143,6 +143,7 @@ public class RequestHandler extends Thread {
                 response200Header(dos, body.length);
             }
             if (this.isLogined) {
+                log.info("로그인됨");
                 dos.writeBytes("Set-Cookie: logined=true; \r\n");
             } else {
                 dos.writeBytes("Set-Cookie: logined=false; \r\n");
