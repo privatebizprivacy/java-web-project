@@ -97,9 +97,17 @@ public class RequestHandler extends Thread {
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = null;
 
-            if (requestPath.equals("/user/create") || requestPath.equals("/user/login")) {
+            if (requestPath.equals("/user/create")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
-                response302Header(dos, path, isLogined);
+                response302Header(dos, path);
+            } else if (requestPath.equals("/user/login")) {
+                body = Files.readAllBytes(new File("./webapp" + path).toPath());
+                response302Header(dos, path);
+                if (isLogined) {
+                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                } else {
+                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                }
             } else if (requestPath.equals("/user/list")) {
 
                 if (isLogined) {
@@ -124,53 +132,40 @@ public class RequestHandler extends Thread {
                     }
 
                     body = new String(body).replace("{}", sb.toString()).getBytes();
-
-                    response200Header(dos, body.length, isLogined);
+                    response200Header(dos, body.length);
 
                 } else {
                     path = "/index.html";
                     body = Files.readAllBytes(new File("./webapp" + path).toPath());
-                    response302Header(dos, path, isLogined);
+                    response302Header(dos, path);
                 }
 
             } else {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
-                response200Header(dos, body.length, isLogined);
+                response200Header(dos, body.length);
             }
 
+            dos.writeBytes("\r\n");
             responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, boolean isLogined) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            if (isLogined) {
-                dos.writeBytes("Set-Cookie: logined=true; \r\n");
-            } else {
-                dos.writeBytes("Set-Cookie: logined=false; \r\n");
-            }
-            dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response302Header(DataOutputStream dos, String path, boolean isLogined) {
+    private void response302Header(DataOutputStream dos, String path) {
         try {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
             dos.writeBytes("Location: " + path + "\r\n");
-            if (isLogined) {
-                dos.writeBytes("Set-Cookie: logined=true \r\n");
-            } else {
-                dos.writeBytes("Set-Cookie: logined=false \r\n");
-            }
-            dos.writeBytes("\r\n");
-
         } catch (IOException e) {
             // TODO: handle exception
             log.error(e.getMessage());
