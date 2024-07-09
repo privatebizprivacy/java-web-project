@@ -138,6 +138,7 @@ public class RequestHandler extends Thread {
                     body = new String(body).replace("{}", sb.toString()).getBytes();
                     response200Header(dos, body.length);
                 } else {
+                    log.info("실패함");
                     path = "/index.html";
                     body = Files.readAllBytes(new File("./webapp" + path).toPath());
                     response302Header(dos, path);
