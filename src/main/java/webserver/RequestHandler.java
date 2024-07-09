@@ -100,6 +100,11 @@ public class RequestHandler extends Thread {
             if (requestPath.equals("/user/create")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
+                if (isLogined) {
+                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                } else {
+                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                }
             } else if (requestPath.equals("/user/login")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
@@ -133,6 +138,11 @@ public class RequestHandler extends Thread {
 
                     body = new String(body).replace("{}", sb.toString()).getBytes();
                     response200Header(dos, body.length);
+                    if (isLogined) {
+                        dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                    } else {
+                        dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                    }
 
                 } else {
                     path = "/index.html";
@@ -143,6 +153,11 @@ public class RequestHandler extends Thread {
             } else {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length);
+                if (isLogined) {
+                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                } else {
+                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                }
             }
 
             dos.writeBytes("\r\n");
