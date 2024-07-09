@@ -95,9 +95,10 @@ public class RequestHandler extends Thread {
             }
 
             DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = Files.readAllBytes(new File("./webapp" + path).toPath());
+            byte[] body = null;
 
             if (requestPath.equals("/user/create") || requestPath.equals("/user/login")) {
+                body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path, isLogined);
             } else if (requestPath.equals("/user/list")) {
 
@@ -133,6 +134,7 @@ public class RequestHandler extends Thread {
                 }
 
             } else {
+                body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length, isLogined);
             }
 
