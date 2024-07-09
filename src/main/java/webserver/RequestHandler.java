@@ -150,9 +150,9 @@ public class RequestHandler extends Thread {
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             if (isLogined) {
-                dos.writeBytes("Set-Cookie: logined=true \r\n");
+                dos.writeBytes("Set-Cookie: logined=true; \r\n");
             } else {
-                dos.writeBytes("Set-Cookie: logined=false \r\n");
+                dos.writeBytes("Set-Cookie: logined=false; \r\n");
             }
             dos.writeBytes("\r\n");
         } catch (IOException e) {
