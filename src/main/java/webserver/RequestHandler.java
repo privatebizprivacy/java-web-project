@@ -23,7 +23,6 @@ public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     private Socket connection;
-    private boolean isLogined = false;
 
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
@@ -42,6 +41,7 @@ public class RequestHandler extends Thread {
             // 헤더 출력
             String line = br.readLine();
             String url = WebUtil.getURI(line);
+            boolean isLogined = false;
             int contentLength = 0;
 
             while (!"".equals(line)) {
@@ -87,7 +87,7 @@ public class RequestHandler extends Thread {
 
                 if (null != user && user.getPassword().equals(parameters.get("password"))) {
                     path = "/index.html";
-                    this.isLogined = true;
+                    isLogined = true;
                 } else {
                     path = "/user/login_failed.html";
                 }
@@ -107,6 +107,11 @@ public class RequestHandler extends Thread {
             } else if (requestPath.equals("/user/login")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
+                if (isLogined) {
+                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                } else {
+                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                }
             } else if (requestPath.equals("/user/list")) {
 
                 if (isLogined) {
@@ -142,12 +147,7 @@ public class RequestHandler extends Thread {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length);
             }
-            if (this.isLogined) {
-                log.info("로그인됨");
-                dos.writeBytes("Set-Cookie: logined=true; \r\n");
-            } else {
-                dos.writeBytes("Set-Cookie: logined=false; \r\n");
-            }
+
             dos.writeBytes("\r\n");
             responseBody(dos, body);
         } catch (IOException e) {
