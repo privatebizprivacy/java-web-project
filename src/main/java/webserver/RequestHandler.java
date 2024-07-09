@@ -41,6 +41,7 @@ public class RequestHandler extends Thread {
             // 헤더 출력
             String line = br.readLine();
             String url = WebUtil.getURI(line);
+            String contentType = "text/html;charset=utf-8";
             boolean isLogined = false;
             int contentLength = 0;
 
@@ -59,6 +60,10 @@ public class RequestHandler extends Thread {
                     Map<String, String> cookies = HttpRequestUtils.parseCookies(cookieLine);
                     isLogined = Boolean.parseBoolean(cookies.get("logined"));
                     log.info("로그인여부: " + isLogined + ":" + cookies.toString());
+                }
+
+                if (line.startsWith("Accept: ")) {
+                    contentType = line.replace("Accept: ", "").split(";")[0];
                 }
 
                 log.info(line);
@@ -103,7 +108,7 @@ public class RequestHandler extends Thread {
             if (requestPath.equals("/index.html")) {
                 path = "/index.html";
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
-                response200Header(dos, body.length);
+                response200Header(dos, body.length, contentType);
             } else if (requestPath.equals("/user/create")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
@@ -141,7 +146,7 @@ public class RequestHandler extends Thread {
                     path = "/user/list.html";
                     body = Files.readAllBytes(new File("./webapp" + path).toPath());
                     body = new String(body).replace("{}", sb.toString()).getBytes();
-                    response200Header(dos, body.length);
+                    response200Header(dos, body.length, contentType);
                 } else {
                     log.info("실패함");
                     path = "/index.html";
@@ -151,7 +156,7 @@ public class RequestHandler extends Thread {
 
             } else {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
-                response200Header(dos, body.length);
+                response200Header(dos, body.length, contentType);
             }
 
             dos.writeBytes("\r\n");
@@ -161,10 +166,10 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String ContentType) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + ContentType + "\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
