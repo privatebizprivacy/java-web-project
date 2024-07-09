@@ -56,6 +56,7 @@ public class RequestHandler extends Thread {
                 if (line.startsWith("Cookie:")) {
                     Map<String, String> cookies = HttpRequestUtils.parseCookies(line);
                     isLogined = Boolean.parseBoolean(cookies.get("logined"));
+                    log.info("로그인여부: " + isLogined);
                 }
 
                 log.info(line);
