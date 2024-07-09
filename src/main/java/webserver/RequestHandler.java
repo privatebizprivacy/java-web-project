@@ -62,8 +62,8 @@ public class RequestHandler extends Thread {
                     log.info("로그인여부: " + isLogined + ":" + cookies.toString());
                 }
 
-                if (line.startsWith("Accept: ")) {
-                    contentType = line.replace("Accept: ", "").split(";")[0];
+                if (line.startsWith("Accept: text/css")) {
+                    contentType = "text/css";
                 }
 
                 log.info(line);
