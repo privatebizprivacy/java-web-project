@@ -97,7 +97,16 @@ public class RequestHandler extends Thread {
             DataOutputStream dos = new DataOutputStream(out);
             byte[] body = null;
 
-            if (requestPath.equals("/user/create")) {
+            if (requestPath.equals("/index.html")) {
+                path = "/index.html";
+                body = Files.readAllBytes(new File("./webapp" + path).toPath());
+                response200Header(dos, body.length);
+                if (isLogined) {
+                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                } else {
+                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                }
+            } else if (requestPath.equals("/user/create")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
                 if (isLogined) {
@@ -148,16 +157,16 @@ public class RequestHandler extends Thread {
                     path = "/index.html";
                     body = Files.readAllBytes(new File("./webapp" + path).toPath());
                     response302Header(dos, path);
+                    if (isLogined) {
+                        dos.writeBytes("Set-Cookie: logined=true; \r\n");
+                    } else {
+                        dos.writeBytes("Set-Cookie: logined=false; \r\n");
+                    }
                 }
 
             } else {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length);
-                if (isLogined) {
-                    dos.writeBytes("Set-Cookie: logined=true; \r\n");
-                } else {
-                    dos.writeBytes("Set-Cookie: logined=false; \r\n");
-                }
             }
 
             dos.writeBytes("\r\n");
