@@ -45,10 +45,7 @@ public class RequestHandler extends Thread {
             boolean isLogined = false;
             int contentLength = 0;
 
-            while (!"".equals(line)) {
-                if (null == line) {
-                    return;
-                }
+            while (null != line && !"".equals(line)) {
 
                 if (line.startsWith("Content-Length:")) {
                     contentLength = WebUtil.getContentLength(line);
@@ -56,10 +53,8 @@ public class RequestHandler extends Thread {
 
                 if (line.startsWith("Cookie:")) {
                     String cookieLine = line.replace("Cookie: ", "");
-                    log.info(cookieLine);
                     Map<String, String> cookies = HttpRequestUtils.parseCookies(cookieLine);
                     isLogined = Boolean.parseBoolean(cookies.get("logined"));
-                    log.info("로그인여부: " + isLogined + ":" + cookies.toString());
                 }
 
                 if (line.startsWith("Accept: text/css")) {
@@ -71,26 +66,17 @@ public class RequestHandler extends Thread {
             }
 
             // 요청 처리
-            int index = url.indexOf("?");
-            String requestPath = index > -1 ? url.substring(0, index) : url;
+            String requestPath = getRequestPath(url);
             String path = requestPath;
 
             if (requestPath.equals("/user/create")) {
-                // String params = url.substring(index + 1);
-
                 String content = IOUtils.readData(br, contentLength);
-                Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
-                User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
-                        parameters.get("email"));
-
-                // 로그 출력
-                log.info(user.toString());
+                User user = createUser(content);
                 DataBase.addUser(user);
                 path = "/index.html";
             } else if (requestPath.equals("/user/login")) {
                 String content = IOUtils.readData(br, contentLength);
                 Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
-
                 User user = DataBase.findUserById(parameters.get("userId"));
 
                 if (null != user && user.getPassword().equals(parameters.get("password"))) {
@@ -193,5 +179,25 @@ public class RequestHandler extends Thread {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    private String getRequestPath(String url) {
+
+        int index = url.indexOf("?");
+        String requestPath = index > -1 ? url.substring(0, index) : url;
+        return requestPath;
+    }
+
+    private User createUser(String content) {
+        Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
+        User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("name"),
+                parameters.get("email"));
+        return user;
+    }
+
+    private User getUser(String content) {
+        Map<String, String> parameters = HttpRequestUtils.parseQueryString(content);
+        User user = DataBase.findUserById(parameters.get("userId"));
+        return user;
     }
 }

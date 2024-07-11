@@ -28,19 +28,19 @@
 
 ### 요구사항 3 - post 방식으로 회원가입
 
--
+- Body값이 있을경우, Content-Length값이 있다는것.
 
 ### 요구사항 4 - redirect 방식으로 이동
 
--
+- redirect라는게 다순히 헤더값을 바꾸는게아닌, 응답 body도 바꾸어줘야한다는것.
 
 ### 요구사항 5 - cookie
 
--
+- 쿠키를 세팅하면 상위경로가 세팅된다는것.
 
 ### 요구사항 6 - stylesheet 적용
 
--
+- 응답헤더의 Content-Type을 text/css 설정해줘야 css가 적용이 된다는것.
 
 ### heroku 서버에 배포 후
 
