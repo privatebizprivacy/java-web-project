@@ -35,17 +35,23 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
 
-            InputStreamReader reader = new InputStreamReader(in);
+            InputStreamReader reader = new InputStreamReader(in, "UTF-8");
             BufferedReader br = new BufferedReader(reader);
 
             // 헤더 출력
             String line = br.readLine();
             String url = WebUtil.getURI(line);
+            int contentLength = 0;
             String contentType = "text/html;charset=utf-8";
             boolean isLogined = false;
-            int contentLength = 0;
 
-            while (null != line && !"".equals(line)) {
+            log.debug("request line : {}", line);
+
+            if (null == line) {
+                return;
+            }
+
+            while (!"".equals(line)) {
 
                 if (line.startsWith("Content-Length:")) {
                     contentLength = WebUtil.getContentLength(line);
@@ -61,8 +67,8 @@ public class RequestHandler extends Thread {
                     contentType = "text/css";
                 }
 
-                log.info(line);
                 line = br.readLine();
+                log.debug("header : {}", line);
             }
 
             // 요청 처리
@@ -95,6 +101,8 @@ public class RequestHandler extends Thread {
                 path = "/index.html";
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length, contentType);
+                dos.writeBytes("\r\n");
+                responseBody(dos, body);
             } else if (requestPath.equals("/user/create")) {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response302Header(dos, path);
@@ -133,6 +141,8 @@ public class RequestHandler extends Thread {
                     body = Files.readAllBytes(new File("./webapp" + path).toPath());
                     body = new String(body).replace("{}", sb.toString()).getBytes();
                     response200Header(dos, body.length, contentType);
+                    dos.writeBytes("\r\n");
+                    responseBody(dos, body);
                 } else {
                     log.info("실패함");
                     path = "/index.html";
@@ -143,10 +153,10 @@ public class RequestHandler extends Thread {
             } else {
                 body = Files.readAllBytes(new File("./webapp" + path).toPath());
                 response200Header(dos, body.length, contentType);
+                dos.writeBytes("\r\n");
+                responseBody(dos, body);
             }
 
-            dos.writeBytes("\r\n");
-            responseBody(dos, body);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
