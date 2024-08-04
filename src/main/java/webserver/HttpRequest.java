@@ -1,11 +1,9 @@
 package webserver;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class HttpRequest {
 
@@ -28,26 +27,44 @@ public class HttpRequest {
 
     private Map<String, String> headers;
 
+    private String body;
+
     public HttpRequest(InputStream in) {
         this.in = in;
-        init();
+        this.parameters = new HashMap<>();
+        this.headers = new HashMap<>();
     }
 
-    private void init() {
+    public void httpRequestProcess() {
 
-        try (InputStreamReader isr = new InputStreamReader(this.in);
-                BufferedReader br = new BufferedReader(isr);) {
+        InputStreamReader isr = null;
+        BufferedReader br = null;
+
+        try {
+
+            isr = new InputStreamReader(in, "UTF-8");
+            br = new BufferedReader(isr);
 
             String line = br.readLine();
+            if (line == null) {
+                return;
+            }
+
             String[] firstLine = line.split(" ");
 
-            int index = firstLine[1].indexOf('?');
             this.method = firstLine[0];
-            this.path = firstLine[1].substring(0, index);
-            this.parameters = HttpRequestUtils.parseQueryString(firstLine[1].substring(index + 1));
-            this.headers = new HashMap<>();
 
-            while ((line = br.readLine()) != "") {
+            int index = firstLine[1].indexOf('?');
+            if (index != -1) {
+                this.path = firstLine[1].substring(0, index);
+                this.parameters.putAll(HttpRequestUtils.parseQueryString(firstLine[1].substring(index + 1)));
+            } else {
+                this.path = firstLine[1];
+            }
+
+            while (!line.equals("")) {
+
+                line = br.readLine();
 
                 if (line.contains(": ")) {
                     int keyIndex = line.indexOf(':');
@@ -57,19 +74,19 @@ public class HttpRequest {
                     this.headers.put(key, value);
                 }
 
+                log.debug("header : {}", line);
             }
 
-            line = br.readLine();
+            int contentLength = Integer.parseInt(this.headers.getOrDefault("Content-Length", "0"));
 
-            if (line != null) {
-                
+            if (this.method.equals("POST") && contentLength > 0) {
+                body = IOUtils.readData(br, contentLength);
             }
 
         } catch (IOException e) {
             // TODO: handle exception
             log.error(e.getMessage());
         }
-
     }
 
     public String getMethod() {
@@ -80,6 +97,10 @@ public class HttpRequest {
         return this.path;
     }
 
+    public String getBody() {
+        return this.body;
+    }
+
     public String getHeader(String header) {
         return this.headers.get(header);
     }
@@ -87,5 +108,4 @@ public class HttpRequest {
     public String getParameter(String parameter) {
         return this.parameters.get(parameter);
     }
-
 }

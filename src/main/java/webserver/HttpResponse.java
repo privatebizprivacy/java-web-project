@@ -28,18 +28,28 @@ public class HttpResponse {
         this.headers.put(key, value);
     }
 
-    public void forward(String url) throws IOException {
-        byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-        response200Header(body.length);
-        responseBody(body);
+    public void forward(String url) {
+        try {
+            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+            int contentLength = Integer.parseInt(headers.getOrDefault("Content-Length", "0"));
+            response200Header(contentLength);
+            responseBody(body);
+        } catch (IOException e) {
+            // TODO: handle exception
+            log.error(e.getMessage());
+        }
     }
 
-    public void forwardBody(String url) throws IOException {
+    public void forwardBody(String body) {
+        response200Header(body.length());
+        responseBody(body.getBytes());
     }
 
     public void response200Header(int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes(
+                    "Content-Type: " + this.headers.getOrDefault("Content-Type", "text/html;charset=utf-8") + "\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             processHeaders();
             dos.writeBytes("\r\n");

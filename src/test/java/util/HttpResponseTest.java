@@ -10,7 +10,7 @@ import org.junit.Test;
 import webserver.HttpResponse;
 
 public class HttpResponseTest {
-    private String testDirecString = "./src/test/resources/";
+    private String testDirectString = "./src/test/resources/";
 
     @Test
     public void responseForward() throws Exception {
@@ -37,6 +37,6 @@ public class HttpResponseTest {
     }
 
     private OutputStream createOutputStream(String filename) throws FileNotFoundException {
-        return new FileOutputStream(new File(testDirecString + filename));
+        return new FileOutputStream(new File(testDirectString + filename));
     }
 }
