@@ -1,10 +1,7 @@
 package webserver;
 
-import java.util.Map;
-
 import db.DataBase;
 import model.User;
-import util.HttpRequestUtils;
 
 public class CreateUserController extends AbstractController {
 
@@ -13,9 +10,8 @@ public class CreateUserController extends AbstractController {
         // TODO Auto-generated method stub
         super.doPost(request, response);
 
-        String body = request.getBody();
-        Map<String, String> params = HttpRequestUtils.parseQueryString(body);
-        User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
+        User user = new User(request.getParameter("userId"), request.getParameter("password"),
+                request.getParameter("name"), request.getParameter("email"));
 
         DataBase.addUser(user);
         response.sendRedirect("index.html");

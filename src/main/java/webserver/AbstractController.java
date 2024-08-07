@@ -12,11 +12,9 @@ public abstract class AbstractController implements Controller {
             doPost(request, response);
     }
 
-    public void doGet(HttpRequest request, HttpResponse response) {
-        request.httpRequestProcess();
+    protected void doGet(HttpRequest request, HttpResponse response) {
     };
 
-    public void doPost(HttpRequest request, HttpResponse response) {
-        request.httpRequestProcess();
+    protected void doPost(HttpRequest request, HttpResponse response) {
     };
 }

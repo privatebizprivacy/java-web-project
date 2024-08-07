@@ -11,18 +11,15 @@ public class LoginController extends AbstractController {
     @Override
     public void doPost(HttpRequest request, HttpResponse response) {
         super.doPost(request, response);
-        String body = request.getBody();
-        Map<String, String> params = HttpRequestUtils.parseQueryString(body);
-        User user = DataBase.findUserById(params.get(params.get("userId")));
+        User user = DataBase.findUserById(request.getParameter("userId"));
 
         if (user != null) {
-            if (user.login(params.get("password"))) {
+            if (user.login(request.getParameter("password"))) {
                 response.addHeader("Set-cookie", "logined=true");
                 response.sendRedirect("/index.html");
             }
         } else {
             response.forward("/user/login_failed.html");
         }
-
     }
 }

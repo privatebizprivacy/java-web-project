@@ -17,22 +17,29 @@ public class HttpResponse {
 
     private DataOutputStream dos;
 
-    private Map<String, String> headers;
+    private Map<String, String> headers = new HashMap<>();
 
     public HttpResponse(OutputStream out) {
-        this.dos = new DataOutputStream(out);
-        this.headers = new HashMap<>();
+        dos = new DataOutputStream(out);
     }
 
     public void addHeader(String key, String value) {
-        this.headers.put(key, value);
+        headers.put(key, value);
     }
 
     public void forward(String url) {
         try {
             byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            int contentLength = Integer.parseInt(headers.getOrDefault("Content-Length", "0"));
-            response200Header(contentLength);
+
+            if (url.endsWith(".css")) {
+                headers.put("Content-Type", "text/css");
+            } else if (url.endsWith(".js")) {
+                headers.put("Content-Type", "application/javascript");
+            } else {
+                headers.put("Content-Type", "text/html;charset=utf-8");
+            }
+            headers.put("Content-Type", body.length + "");
+            response200Header(body.length);
             responseBody(body);
         } catch (IOException e) {
             // TODO: handle exception
@@ -41,16 +48,28 @@ public class HttpResponse {
     }
 
     public void forwardBody(String body) {
+        byte[] contents = body.getBytes();
+        headers.put("Content-Type", "text/html;charset=utf-8");
+        headers.put("Content-Length", String.valueOf(contents.length));
         response200Header(body.length());
-        responseBody(body.getBytes());
+        responseBody(contents);
+    }
+
+    public void sendRedirect(String path) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: " + path + " \r\n");
+            processHeaders();
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            // TODO: handle exception
+            log.error(e.getMessage());
+        }
     }
 
     public void response200Header(int lengthOfBodyContent) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes(
-                    "Content-Type: " + this.headers.getOrDefault("Content-Type", "text/html;charset=utf-8") + "\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             processHeaders();
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -64,18 +83,6 @@ public class HttpResponse {
             dos.write(body, 0, body.length);
             dos.writeBytes("\r\n");
             dos.flush();
-        } catch (IOException e) {
-            // TODO: handle exception
-            log.error(e.getMessage());
-        }
-    }
-
-    public void sendRedirect(String path) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location: " + path + " \r\n");
-            processHeaders();
-            dos.writeBytes("\r\n");
         } catch (IOException e) {
             // TODO: handle exception
             log.error(e.getMessage());
